@@ -22,39 +22,49 @@ public abstract class ReactClippingViewManager<T : ReactViewGroup> : ViewGroupMa
   @ReactProp(name = ReactClippingViewGroupHelper.PROP_REMOVE_CLIPPED_SUBVIEWS)
   public open fun setRemoveClippedSubviews(view: T, removeClippedSubviews: Boolean) {
     UiThreadUtil.assertOnUiThread()
+
     view.removeClippedSubviews = removeClippedSubviews
   }
 
   override fun addView(parent: T, child: View, index: Int) {
     UiThreadUtil.assertOnUiThread()
-    if (parent.removeClippedSubviews) {
+
+    val removeClippedSubviews = parent.removeClippedSubviews
+    if (removeClippedSubviews) {
       parent.addViewWithSubviewClippingEnabled(child, index)
     } else {
       parent.addView(child, index)
     }
   }
 
-  override fun getChildCount(parent: T): Int =
-      if (parent.removeClippedSubviews) {
-        parent.allChildrenCount
-      } else {
-        parent.childCount
-      }
+  override fun getChildCount(parent: T): Int {
+    val removeClippedSubviews = parent.removeClippedSubviews
+    return if (removeClippedSubviews) {
+      parent.allChildrenCount
+    } else {
+      parent.childCount
+    }
+  }
 
-  override fun getChildAt(parent: T, index: Int): View? =
-      if (parent.removeClippedSubviews) {
-        parent.getChildAtWithSubviewClippingEnabled(index)
-      } else {
-        parent.getChildAt(index)
-      }
+  override fun getChildAt(parent: T, index: Int): View? {
+    val removeClippedSubviews = parent.removeClippedSubviews
+    return if (removeClippedSubviews) {
+      parent.getChildAtWithSubviewClippingEnabled(index)
+    } else {
+      parent.getChildAt(index)
+    }
+  }
 
   override fun removeViewAt(parent: T, index: Int) {
     UiThreadUtil.assertOnUiThread()
-    if (parent.removeClippedSubviews) {
-      val child = getChildAt(parent, index) ?: return
-      if (child.parent != null) {
-        parent.removeView(child)
-      } else {
+
+    val removeClippedSubviews = parent.removeClippedSubviews
+    if (removeClippedSubviews) {
+      val child = getChildAt(parent, index)
+      if (child != null) {
+        if (child.parent != null) {
+          parent.removeView(child)
+        }
         parent.removeViewWithSubviewClippingEnabled(child)
       }
     } else {
@@ -64,7 +74,9 @@ public abstract class ReactClippingViewManager<T : ReactViewGroup> : ViewGroupMa
 
   override fun removeAllViews(parent: T) {
     UiThreadUtil.assertOnUiThread()
-    if (parent.removeClippedSubviews) {
+
+    val removeClippedSubviews = parent.removeClippedSubviews
+    if (removeClippedSubviews) {
       parent.removeAllViewsWithSubviewClippingEnabled()
     } else {
       parent.removeAllViews()
